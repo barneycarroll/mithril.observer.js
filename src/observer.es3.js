@@ -27,7 +27,7 @@
   var m_render = m.render
 
   m.render = function( root ){
-    var observer = new MutationObserver( function( mutation ){
+    var observer = new MutationObserver( function( mutations ){
       for( var i = 0; i < mutations.length; i++ )
         console.log( mutations[ i ] )
     } )
