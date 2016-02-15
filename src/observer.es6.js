@@ -1,6 +1,5 @@
 import m from 'mithril'
 
-const roots     = new Set()
 const observers = new Set()
 
 const config    = {
@@ -13,46 +12,30 @@ const config    = {
   attributeFilte        : true
 }
 
-const methods   = {}
-
-{
-  [ 'mount','route' ].forEach( key => {
-  	const method = m[ key ]
-  
-    methods[ key ] = function( root ){
-      if( root.nodeType ){
-        for( let observer of observers )
-          observer.disconnect()
-
-        roots.add( root )
-      }
-
-      return method( ...arguments )
-    }
-  } )
-}
-
 m.mount( document.createElement( 'div' ), {
-  view : () => {
-    observers.clear()
-
-    for( let root of roots ){
-    	const observer = new MutationObserver( mutations =>      
-        mutations.forEach( mutation => console.log( mutation ) )
-      )
-      
-      observer.observe( root, config )
-      
-      observers.add( observer )
-    }
-
+  view : () =>
     m( 'div', {
       config : () => {
         for( let observer of observers )
           observer.disconnect()
+        
+        observers.clear()
       }
     } )
-  }
 } )
 
-export default Object.assign( m, methods )
+const m_render = m.render
+
+export default Object.assign( m, {
+	render( root ){
+  	const observer = new MutationObserver( mutations => 
+    	mutations.forEach( mutation => console.log( mutation ) )
+    )
+    
+    observer.observe( root, config )
+  
+  	observers.add( observer )
+    
+    return m_render( ...arguments )
+  }
+} )
