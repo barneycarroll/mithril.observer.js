@@ -27,14 +27,14 @@ m.mount( document.createElement( 'div' ), {
 const m_render = m.render
 
 export default Object.assign( m, {
-	render( root ){
-  	const observer = new MutationObserver( mutations => 
-    	mutations.forEach( mutation => console.log( mutation ) )
+  render( root ){
+    const observer = new MutationObserver( mutations => 
+      mutations.forEach( mutation => console.log( mutation ) )
     )
     
     observer.observe( root, config )
   
-  	observers.add( observer )
+    observers.add( observer )
     
     return m_render( ...arguments )
   }
