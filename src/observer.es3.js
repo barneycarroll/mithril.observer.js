@@ -1,5 +1,20 @@
-( function(){
+( function( global, factory ){
+	var output = factory( global )
+	
+	     if( typeof module === 'object'   && module != null && module.exports )
+		module.exports = output
+	else if( typeof define === 'function' && define.amd )
+		define( function(){ return output } )
+	else
+		global.observer = output
+} )
+( typeof window !== 'undefined' ? window : {}, function( global ){
+  var dummy     = document.createElement( 'div' )
   var observers = []
+  var log       = []
+  var callback  = function( root, mutations ){
+  	console.log( root, mutations )
+  }
 
   var config    = {
     childList             : true,
@@ -11,14 +26,19 @@
     attributeFilte        : true
   }
 
-  m.mount( document.createElement( 'div' ), {
-    view :function(){
+  m.mount( dummy, {
+    view : function( ctrl ){
       return m( 'div', {
-        config : function(){
+        config : function( ctrl ){
+        	if( !ctrl.init )
+          	return ctrl.init = true
+        
           for( var i = 0; i < observers.length; i++ )
             observers[ i ].disconnect()
           
-          observers.length = 0
+          callback( log )
+          
+          observers.length = log.length = 0
         }
       } )
     }
@@ -27,15 +47,25 @@
   var m_render = m.render
 
   m.render = function( root ){
-    var observer = new MutationObserver( function( mutations ){
-      for( var i = 0; i < mutations.length; i++ )
-        console.log( mutations[ i ] )
-    } )
-    
-    observer.observe( root, config )
-  
-    observers.push( observer )
-    
-    return m_render.apply( this, arguments )
+  	if( root != dummy ){
+      var observer = new MutationObserver( function( mutations ){
+        callback( root, mutations )
+      } )
+
+      observer.observe( root, config )
+
+      observers.push( observer )
+
+      return m_render.apply( this, arguments )
+    }
   }
-}() );
+  
+  return {
+  	reporter : function( fn ){
+    	if( typeof fn === 'function' )
+      	callback = fn
+      
+      return callback
+    }
+  }
+} );
